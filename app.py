@@ -1,21 +1,26 @@
-#import files
+# import files
 from flask import Flask, render_template, request
-from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
-from chatterbot.trainers import ListTrainer
-app = Flask(__name__)
-bot = ChatBot("Python-BOT")
-trainer = ListTrainer(bot)
-trainer.train(['what is your name?', 'My name is Python-BOT'])
-trainer.train(['who are you?', 'I am a BOT'])
-trainer = ChatterBotCorpusTrainer(bot)
-trainer.train("chatterbot.corpus.english")
+from wit import Wit
+
+# app name
+app = Flask("Chattra")
+
+# Wit.ai API
+access_token = "QYM5JWAO6JGZZIXQMYNJDNX74PM4C5IJ"
+client = Wit(access_token)
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
 @app.route("/get")
 def get_bot_response():
-    userText = request.args.get('msg')
-    return str(bot.get_response(userText))
+    user_text = request.args.get('msg')
+    resp = client.message(user_text)
+    return str(resp)
+
+
 if __name__ == "__main__":
     app.run()
