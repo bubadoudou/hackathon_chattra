@@ -8,9 +8,9 @@ Your friendly travel buddy
 
 ### How to use code
 1. Clone the repo: `git clone https://github.com/bubadoudou/hackathon_chattra/`
-2. Go to python officially website to download [python 3.7](https://www.python.org/downloads/release/python-377/)
+2. Go to python officially website to download [Python 3.7](https://www.python.org/downloads/release/python-377/)
 3. Create new virtual env by:
-    * mkvirtualenv "your_env_name"
-    * pip install -r requirements.txt (to install dependancies and libraries)
+    * `mkvirtualenv "your_env_name"`
+    * `pip install -r requirements.txt (to install dependancies and libraries)`
 4. Go to terminal and compile app.py
-    * python app.py
+    * `python app.py`
