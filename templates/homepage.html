@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/homepage.css') }}"/>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>Facebook Hackathon</title>
+  </head>
+  <body>
+    <header>
+      <div class="logo-container">
+        <img src="{{ url_for('static', filename='imgs/logo.svg') }}" alt="logo" />
+        <h4 class="logo">Facebook Hackathon</h4>
+      </div>
+      <nav>
+        <ul class="nav-links">
+          <li><a class="nav-link" href="#">Home</a></li>
+          <li><a class="nav-link" href="#">Products</a></li>
+          <li><a class="nav-link" href="#">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-dropdown">
+        <button onclick="myFunction()" class="dropbtn">
+          <div class="menu-symbol"></div>
+          <div class="menu-symbol"></div>
+          <div class="menu-symbol"></div>
+        </button>
+        <div id="myDropdown" class="dropdown-content">
+          <a href="#">Home</a>
+          <a href="#">Products</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="presentation">
+        <div class="introduction">
+          <div class="intro-text">
+            <h1>Tourism of the Future</h1>
+            <p>
+              The new tourism evolution with AI.
+            </p>
+          </div>
+          <div class="cta">
+            <a class="cta-chat" href="{{ url_for('chattra') }}">Chat Now</a>
+            <a class="cta-help" href="">About Us</a>
+          </div>
+        </div>
+        <div class="slider">
+          <div class="cover">
+            <img src="{{ url_for('static', filename='imgs/matebook.png') }}" alt="cover" />
+          </div>
+          <div class="img-select">
+            <img src="{{ url_for('static', filename='imgs/arrow-left.svg') }}" />
+            <img src="{{ url_for('static', filename='imgs/dot.svg') }}" />
+            <img src="{{ url_for('static', filename='imgs/dot-full.svg') }}" />
+            <img src="{{ url_for('static', filename='imgs/dot-full.svg') }}" />
+            <img src="{{ url_for('static', filename='imgs/arrow-right.svg') }}" />
+          </div>
+        </div>
+      </section>
+
+      <img class="big-circle" src="{{ url_for('static', filename='imgs/big-eclipse.svg') }}" />
+      <img class="med-circle" src="{{ url_for('static', filename='imgs/mid-eclipse.svg') }}" />
+      <img class="small-circle" src="{{ url_for('static', filename='imgs/small-eclipse.svg') }}" />
+    </main>
+
+    <script>
+      /* When the user clicks on the button, 
+      toggle between hiding and showing the dropdown content */
+      function myFunction() {
+        document.getElementById("myDropdown").classList.toggle("show");
+      }
+
+      // Close the dropdown if the user clicks outside of it
+      window.onclick = function (event) {
+        if (!event.target.matches(".dropbtn")) {
+          var dropdowns = document.getElementsByClassName("dropdown-content");
+          var i;
+          for (i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains("show")) {
+              openDropdown.classList.remove("show");
+            }
+          }
+        }
+      };
+    </script>
+  </body>
+</html>

@@ -44,8 +44,12 @@ def get_greeting_response():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("homepage.html")
 
+
+@app.route("/chattra")
+def chattra():
+    return render_template("chatbox.html")
 
 @app.route("/get")
 def get_bot_response():
