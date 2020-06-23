@@ -1,11 +1,28 @@
 # import files
 import random
+from datetime import datetime
 from flask import Flask, render_template, request
 from wit import Wit
 from amadeus import Client, ResponseError
 
 """Define const paras S"""
 DEBUG = 1
+
+
+G_SEASONS_SWITCHER = {
+        1 : 'winter',
+        1 : 'winter',
+        1 : 'winter',
+        2 : 'spring',
+        2 : 'spring',
+        2 : 'spring',
+        3 : 'summer',
+        3 : 'summer',
+        3 : 'summer',
+        4 : 'autumn',
+        4 : 'autumn',
+        4 : 'autumn'
+    }
 
 # April to June
 SPRING_PLACES = ['Da Nang - Hoi An', 'Ninh Binh', 'Hoa Binh']
@@ -22,7 +39,7 @@ WINTER_PLACES = ['Da Lat', 'Ho Chi Minh City', 'Moc Chau']
 GREETING_RESPONSES = ["Hey", "Hey, how're you?", "*Nods* *Nods*", "Hello, how you doing?", "Hello",
                       "Welcome, I am good and you?", "Bonjour!"]
 
-SUGGESTION_RESPONSES = ["Oh yeah, so you want to travel in {} huh? How about plan a trip to {}",
+SUGGESTION_RESPONSES = ["Oh yeah, so you want to travel in {} huh? How about planning a trip to {}",
                         "Wanna chill out {}? Let's travel to {}"]
 
 I_LOC = "location_suggest"  # $wit/location_suggest
@@ -30,11 +47,14 @@ I_FLI = "flight_inquiry"
 I_ACCOM = "accommodation_suggest"
 I_ACT = "activity_suggest"
 
+
 """Define const paras E"""
 
 g_travel_season = ""
+g_travel_date = ""
 g_depart_city = ""
 g_des_city = ""
+g_suggest_des_city = ""
 
 # app name
 app = Flask("Chattra")
@@ -47,8 +67,39 @@ client = Wit(access_token)
 g_amadeus = Client(client_id="O14yETMZyjDB7AgA1VWGmGPzAiWn8P3a", client_secret="iyO7N5thzfGu5m6F")
 
 
+def is_season(input_str):
+    # if user input not a travel season, then determin user only want to book a flight on a specific date.
+    # else return travel season
+    ret_val = input_str['entities'].get('wit$datetime:datetime')[0].get('type')
+    if ret_val == 'interval':
+        return True
+    else:
+        return False
+
+
+def cvt_datetime2season(input_str):
+    ret_val = ""
+
+    _date = input_str['entities']['wit$datetime:datetime'][0]['value']
+    _date = _date[:10]
+
+    _date_obj = datetime.strptime(_date, '%Y-%m-%d').date()
+
+    season_idx = (_date_obj.month%12 + 3)//3
+    
+    ret_val = G_SEASONS_SWITCHER.get(season_idx)
+    
+    return ret_val
+
+
 def get_travel_season(input_str):
-    return input_str['entities'].get('wit$datetime:datetime')[0].get('body')
+    ret_val = ""
+    if is_season(input_str):
+        ret_val = input_str['entities'].get('wit$datetime:datetime')[0].get('body')
+    else:
+        ret_val = cvt_datetime2season(input_str)
+
+    return ret_val
 
 
 def get_intent(usr_resp):
@@ -81,29 +132,29 @@ def get_greeting_response():
 
 
 def get_destination(travel_season):
-    des_city = ""
+    suggest_des_city = ""
     if 'winter' in travel_season:
-        des_city = random.choice(WINTER_PLACES)
+        suggest_des_city = random.choice(WINTER_PLACES)
     elif 'spring' in travel_season:
-        des_city = random.choice(SPRING_PLACES)
+        suggest_des_city = random.choice(SPRING_PLACES)
     elif 'summer' in travel_season:
-        des_city = random.choice(SUMMER_PLACES)
+        suggest_des_city = random.choice(SUMMER_PLACES)
     elif 'autumn' or 'fall' in travel_season:
-        des_city = random.choice(FALL_PLACES)
+        suggest_des_city = random.choice(FALL_PLACES)
 
-    return des_city
+    return suggest_des_city
 
 
 # if intent = location_suggest
 def handle_loc_suggest(usr_resp):
     ret_val = ""
     global g_travel_season
-    global g_des_city
+    global g_suggest_des_city
     g_travel_season = get_travel_season(usr_resp)
 
-    if not g_des_city:
-        g_des_city = get_destination(g_travel_season)
-        ret_val = str(random.choice(SUGGESTION_RESPONSES)).format(g_travel_season, g_des_city)
+    if not g_suggest_des_city:
+        g_suggest_des_city = get_destination(g_travel_season)
+        ret_val = str(random.choice(SUGGESTION_RESPONSES)).format(g_travel_season, g_suggest_des_city)
 
     return ret_val
 
