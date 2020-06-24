@@ -25,16 +25,33 @@ G_SEASONS_SWITCHER = {
     }
 
 # April to June
-SPRING_PLACES = ['Da Nang - Hoi An', 'Ninh Binh', 'Hoa Binh']
+SPRING_PLACES = [
+    {'name' : 'Da Nang - Hoi An', 'nearest_airport' : 'DAD', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Ninh Binh', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Hoa Binh', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
+    ]
+
 
 # July to September
-SUMMER_PLACES = ['Can Tho', 'Nha Trang', 'Ha Noi']
+SUMMER_PLACES = [
+    {'name' : 'Can Tho', 'nearest_airport' : 'VCA', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Nha Trang', 'nearest_airport' : 'CXR', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Ha Noi', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
+    ]
 
 # October to December
-FALL_PLACES = ['Phu Quoc', 'Ha Giang', 'Sapa']
+FALL_PLACES = [
+    {'name' : 'Phu Quoc', 'nearest_airport' : 'PQC', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Ha Giang', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Sapa', 'nearest_airport' : 'DIN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
+    ]
 
 # January to March
-WINTER_PLACES = ['Da Lat', 'Ho Chi Minh City', 'Moc Chau']
+WINTER_PLACES = [
+    {'name' : 'Da Lat', 'nearest_airport' : 'DLI', 'visit' : '', 'eat' : '', 'play' : ''}, 
+    {'name' : 'Ho Chi Minh City', 'nearest_airport' : 'SGN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
+    {'name' : 'Moc Chau', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
+    ]
 
 GREETING_RESPONSES = ["Hey", "Hey, how're you?", "*Nods* *Nods*", "Hello, how you doing?", "Hello",
                       "Welcome, I am good and you?", "Bonjour!"]
@@ -42,11 +59,19 @@ GREETING_RESPONSES = ["Hey", "Hey, how're you?", "*Nods* *Nods*", "Hello, how yo
 SUGGESTION_RESPONSES = ["Oh yeah, so you want to travel in {} huh? How about planning a trip to {}",
                         "Wanna chill out {}? Let's travel to {}"]
 
-I_LOC = "location_suggest"  # $wit/location_suggest
-I_FLI = "flight_inquiry"
-I_ACCOM = "accommodation_suggest"
-I_ACT = "activity_suggest"
+ACCOMMODATION_RESPONSES = ["I suggest you to book a room at {}"]
 
+ATTRACTION_RESPONSES  = ["I would recommend you to visit {}"]
+
+ACTIVITY_RESPONSES = ["You can {} there"]
+
+RESTAURANT_RESPONSES = ["You should try some dishes from {}"]                        
+
+I_LOCATION = "location_suggest"  # $wit/location_suggest
+I_FLIGHT = "flight_inquiry"
+I_ACCOMMODATION = "accommodation_suggest"
+I_ACTIVITY = "activity_suggest"
+I_RESTAURANT = "restaurant_suggest"
 
 """Define const paras E"""
 
@@ -54,7 +79,7 @@ g_travel_season = ""
 g_travel_date = ""
 g_depart_city = ""
 g_des_city = ""
-g_suggest_des_city = ""
+g_suggest_des_city = {}
 
 # app name
 app = Flask("Chattra")
@@ -132,7 +157,7 @@ def get_greeting_response():
 
 
 def get_destination(travel_season):
-    suggest_des_city = ""
+    suggest_des_city = {}
     if 'winter' in travel_season:
         suggest_des_city = random.choice(WINTER_PLACES)
     elif 'spring' in travel_season:
@@ -154,18 +179,27 @@ def handle_loc_suggest(usr_resp):
 
     if not g_suggest_des_city:
         g_suggest_des_city = get_destination(g_travel_season)
-        ret_val = str(random.choice(SUGGESTION_RESPONSES)).format(g_travel_season, g_suggest_des_city)
+        ret_val = str(random.choice(SUGGESTION_RESPONSES)).format(g_travel_season, g_suggest_des_city['name'])
 
     return ret_val
 
 
-def handle_accom(usr_resp):
-    ret_val = ""
+def handle_accom_suggest(usr_resp):
+    ret_val = str(random.choice(ACCOMMODATION_RESPONSES)).format(g_suggest_des_city['hotel'])
     return ret_val
 
 
-def handle_act(usr_resp):
-    ret_val = ""
+def handle_act_suggest(usr_resp):
+    if usr_resp['entities'].get('activity_type:play'):
+        ret_val = str(random.choice(ACTIVITY_RESPONSES)).format(g_suggest_des_city['play'])
+    elif usr_resp['entities'].get('activity_type:visit'):
+        ret_val = str(random.choice(ATTRACTION_RESPONSES)).format(g_suggest_des_city['visit'])
+    else:
+        ret_val = "Sorry malfunctioned"
+    return ret_val
+
+def handle_res_suggest(usr_resp):
+    ret_val = str(random.choice(ACCOMMODATION_RESPONSES)).format(g_suggest_des_city['eat'])
     return ret_val
 
 
@@ -184,14 +218,21 @@ def get_bot_response():
     l_trait = str(get_trait(resp))
     if l_trait == "wit$greetings":
         ret_val = get_greeting_response()
+    elif l_trait == "wit$bye":
+        ret_val = "See ya later"
     else:
         print(str(resp))
         l_intent = get_intent(resp)
         print(l_intent)
-        if l_intent == I_LOC:
+        if l_intent == I_LOCATION:
             ret_val = handle_loc_suggest(resp)
-        else:
-            ret_val = str(resp)
+        elif l_intent == I_ACCOMMODATION:
+            ret_val = handle_accom_suggest(resp)
+        elif l_intent == I_ACTIVITY:
+            ret_val = handle_act_suggest(resp)
+        elif l_intent == I_RESTAURANT:
+            ret_val = handle_res_suggest(resp)
+
 
     return ret_val
 
