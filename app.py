@@ -1,57 +1,79 @@
 # import files
 import random
 from datetime import datetime
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from wit import Wit
 from amadeus import Client, ResponseError
 
 """Define const paras S"""
 DEBUG = 1
 
-
 G_SEASONS_SWITCHER = {
-        1 : 'winter',
-        1 : 'winter',
-        1 : 'winter',
-        2 : 'spring',
-        2 : 'spring',
-        2 : 'spring',
-        3 : 'summer',
-        3 : 'summer',
-        3 : 'summer',
-        4 : 'autumn',
-        4 : 'autumn',
-        4 : 'autumn'
-    }
+    1: 'winter',
+    1: 'winter',
+    1: 'winter',
+    2: 'spring',
+    2: 'spring',
+    2: 'spring',
+    3: 'summer',
+    3: 'summer',
+    3: 'summer',
+    4: 'autumn',
+    4: 'autumn',
+    4: 'autumn'
+}
 
 # April to June
 SPRING_PLACES = [
-    {'name' : 'Da Nang - Hoi An', 'nearest_airport' : 'DAD', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Ninh Binh', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Hoa Binh', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
-    ]
+    {'name': 'Da Nang - Hoi An', 'nearest_airport': 'DAD', 'visit': 'Ba Na Hills ', 'eat': 'Quan Mi Quang Thi',
+     'play': 'go diving in Cu Lao Cham', 'hotel': 'Sala Danang Beach Hotel'},
 
+    {'name': 'Ninh Binh', 'nearest_airport': 'HAN', 'visit': 'Trang An', 'eat': 'Nha Hang Hoang Long',
+     'play': 'go to Van Long Wetland Nature Reserve', 'hotel': 'MOMALI Hotel Ninh Binh'},
+
+    {'name': 'Hoa Binh', 'nearest_airport': 'HAN', 'visit': 'Thung Nai', 'eat': 'Nha hang Hoa Qua Son',
+     'play': 'go bathing at Cuu thac Tu Son', 'hotel': 'Serena Kim Boi Resort'}
+]
 
 # July to September
 SUMMER_PLACES = [
-    {'name' : 'Can Tho', 'nearest_airport' : 'VCA', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Nha Trang', 'nearest_airport' : 'CXR', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Ha Noi', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
-    ]
+    {'name': 'Can Tho', 'nearest_airport': 'VCA', 'visit': 'Cai Rang Floating Market', 'eat': 'Banh Cong Co Ut',
+     'play': 'go to My Khanh Tourist Village', 'hotel': 'Vinpearl Hotel Can Tho'},
+
+    {'name': 'Nha Trang', 'nearest_airport': 'CXR', 'visit': 'Hon Mun Island', 'eat': 'Banh Canh Ba Thua',
+     'play': 'go to Vinpearl Land Nha Trang', 'hotel': 'Sheraton Nha Trang'},
+
+    {'name': 'Ha Noi', 'nearest_airport': 'HAN', 'visit': 'Ha Noi old streets', 'eat': 'Pho 10 Ly Quoc Su',
+     'play': 'go around at Royal City', 'hotel': 'Acoustic Hotel & Spa'}
+]
 
 # October to December
 FALL_PLACES = [
-    {'name' : 'Phu Quoc', 'nearest_airport' : 'PQC', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Ha Giang', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Sapa', 'nearest_airport' : 'DIN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
-    ]
+    {'name': 'Phu Quoc', 'nearest_airport': 'PQC', 'visit': 'Bai Dai', 'eat': 'Xin Chao seafood restaurant',
+     'play': 'go to Hon Mong Tay', 'hotel': 'Salinda Resort Phu Quoc Island'},
+
+    {'name': 'Ha Giang', 'nearest_airport': 'HAN', 'visit': 'Dong Van Karst Plateau Geopark',
+     'eat': 'Giang Son restaurant', 'play': 'attend Tam Giac Mach flower festival', 'hotel': "Be's Home"},
+
+    {'name': 'Sapa', 'nearest_airport': 'DIN', 'visit': 'Fanxipang', 'eat': 'A Phu restaurant', 'play': 'go trekking',
+     'hotel': 'Sapa Horizon Hotel'}
+]
 
 # January to March
 WINTER_PLACES = [
-    {'name' : 'Da Lat', 'nearest_airport' : 'DLI', 'visit' : '', 'eat' : '', 'play' : ''}, 
-    {'name' : 'Ho Chi Minh City', 'nearest_airport' : 'SGN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}, 
-    {'name' : 'Moc Chau', 'nearest_airport' : 'HAN', 'visit' : '', 'eat' : '', 'play' : '', 'hotel' : ''}
-    ]
+    {'name': 'Da Lat', 'nearest_airport': 'DLI', 'visit': 'Pongour waterfall', 'eat': 'Dinh Doi Trang restaurant',
+     'play': 'go to Valley Of Love', 'hotel': 'Anada Suites Hotel'},
+
+    {'name': 'Ho Chi Minh City', 'nearest_airport': 'SGN', 'visit': 'Ben Thanh market',
+     'eat': 'go to Bui Vien western style street', 'play': 'The BCR District 9', 'hotel': 'Sherwood Suites'},
+
+    {'name': 'Moc Chau', 'nearest_airport': 'HAN', 'visit': 'Pine Forest in Ang village',
+     'eat': 'Chau Moc Quan restaurant', 'play': 'go to Happy Land', 'hotel': 'The November'}
+]
+
+RANDOM_RESPONSES = ["You can try to ask me where you should go on a vacation",
+                    "Try something like 'I want to travel from Hanoi to Ho Chi Minh City'",
+                    "You can also query flights, just try it"]
 
 GREETING_RESPONSES = ["Hey", "Hey, how're you?", "*Nods* *Nods*", "Hello, how you doing?", "Hello",
                       "Welcome, I am good and you?", "Bonjour!"]
@@ -61,11 +83,11 @@ SUGGESTION_RESPONSES = ["Oh yeah, so you want to travel in {} huh? How about pla
 
 ACCOMMODATION_RESPONSES = ["I suggest you to book a room at {}"]
 
-ATTRACTION_RESPONSES  = ["I would recommend you to visit {}"]
+ATTRACTION_RESPONSES = ["I would recommend you to visit {}"]
 
-ACTIVITY_RESPONSES = ["You can {} there"]
+ACTIVITY_RESPONSES = ["You can {}"]
 
-RESTAURANT_RESPONSES = ["You should try some dishes from {}"]                        
+RESTAURANT_RESPONSES = ["You should try some dishes from {}"]
 
 I_LOCATION = "location_suggest"  # $wit/location_suggest
 I_FLIGHT = "flight_inquiry"
@@ -110,10 +132,10 @@ def cvt_datetime2season(input_str):
 
     _date_obj = datetime.strptime(_date, '%Y-%m-%d').date()
 
-    season_idx = (_date_obj.month%12 + 3)//3
-    
+    season_idx = (_date_obj.month % 12 + 3) // 3
+
     ret_val = G_SEASONS_SWITCHER.get(season_idx)
-    
+
     return ret_val
 
 
@@ -151,6 +173,9 @@ def get_trait(usr_resp):
     else:
         return list(usr_resp['traits'].keys())[0]
 
+
+def get_random_response():
+    return str(random.choice(RANDOM_RESPONSES))
 
 def get_greeting_response():
     return str(random.choice(GREETING_RESPONSES))
@@ -198,6 +223,7 @@ def handle_act_suggest(usr_resp):
         ret_val = "Sorry malfunctioned"
     return ret_val
 
+
 def handle_res_suggest(usr_resp):
     ret_val = str(random.choice(ACCOMMODATION_RESPONSES)).format(g_suggest_des_city['eat'])
     return ret_val
@@ -217,7 +243,9 @@ def get_bot_response():
     # Check if the user greets
     l_trait = str(get_trait(resp))
     if l_trait == "wit$greetings":
-        ret_val = get_greeting_response()
+        msg1 = get_greeting_response()
+        msg2 = get_random_response()
+        ret_val = jsonify(msg1, msg2)
     elif l_trait == "wit$bye":
         ret_val = "See ya later"
     else:
@@ -232,8 +260,8 @@ def get_bot_response():
             ret_val = handle_act_suggest(resp)
         elif l_intent == I_RESTAURANT:
             ret_val = handle_res_suggest(resp)
-
-
+        else:
+            ret_val = get_random_response()
     return ret_val
 
 

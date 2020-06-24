@@ -100,13 +100,32 @@
                         .getElementById("userInput")
                         .scrollIntoView({ block: "start", behavior: "smooth" });
                     $.get("/get", { msg: rawText }).done(function (data) {
-                        var botHtml = '<p class="botText"><span>' + data + "</span></p>";
-                        $("#chatbox").append(botHtml);
-                        document
-                            .getElementById("userInput")
-                            .scrollIntoView({ block: "start", behavior: "smooth" });
+                        var botHtml;
+                        if(typeof data === "object")
+                        {
+                            for (var i = 0; i < data.length; i++)
+                            {
+                            botHtml = '<p class="botText"><span>' + data[i] + "</span></p>";
+                            $("#chatbox").append(botHtml);
+                            document
+                                .getElementById("userInput")
+                                .scrollIntoView({ block: "start", behavior: "smooth" });
+                            setTimeout(() => {}, 3000);
+                            }
+                        }
+                        else
+                        {
+                            botHtml = '<p class="botText"><span>' + data + "</span></p>";
+                            $("#chatbox").append(botHtml);
+                            document
+                                .getElementById("userInput")
+                                .scrollIntoView({ block: "start", behavior: "smooth" });
+                        }
+
+
                     });
                 }
+
                 $("#textInput").keypress(function (e) {
                     if (e.which == 13) {
                         getBotResponse();
