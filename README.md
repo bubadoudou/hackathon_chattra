@@ -3,7 +3,6 @@ Your friendly travel buddy
 
 ### Python and library dependencies
 * Python 3.7
-* Chatterbot 1.0.5
 * [virtualenvwrapper](https://pypi.org/project/virtualenvwrapper-win/) for Windows
 
 ### How to use code
